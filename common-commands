@@ -1,0 +1,19 @@
+#kill all running docker containers
+docker rm -f $(docker ps -qa)
+
+# list running docker containers
+docker ps
+
+# displays all images in your local repo (good place to find an image id for an image that you may want to remove)
+docker images
+
+# deletes an image from your local repo
+docker rmi imageId
+
+# After updating and running a docker image multiple times some stale data can build up within docker and it’s good to rune these prune commands to clean things up
+docker system prune
+docker volume prune
+docker network prune
+
+# after updating an image some docker layers are not used in an image anymore and are then left “dangling” and are useless taking up space and need this command ran to be removed.
+docker rmi -f $(docker images -f “dangling=true” -q)
