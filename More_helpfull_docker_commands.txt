@@ -1,0 +1,57 @@
+###############################################################################
+# Helpful Docker commands and code snippets
+###############################################################################
+
+### CONTAINERS ###
+docker stop $(docker ps -a -q) #stop ALL containers
+docker rm -f $(docker ps -a -q) # remove ALL containers
+docker rm -f $(sudo docker ps --before="container_id_here" -q) # can also filter
+
+# exec into container
+docker exec -it $(docker container ls  | grep '<seach_term>' | awk '{print $1}') sh
+# exec into container on windows with Git Bash
+winpty docker exec -it $(docker container ls  | grep '<seach_term>' | awk '{print $1}') sh
+
+# helps with error: 'unexpected end of JSON input'
+docker rm -f $(docker ps -a -q) # Remove all in one command with --force
+docker exec -i -t "container_name_here" /bin/bash # Go to container command line
+
+# to exit above use 'ctrl p', 'ctrl q' (don't exit or it will be in exited state)
+docker rm $(docker ps -q -f status=exited) # remove all exited containers
+
+### IMAGES ###
+# list images and containers
+docker images | grep "search_term_here"
+
+# remove image(s) (must remove associated containers first)
+docker rmi -f image_id_here # remove image(s)
+docker rmi -f $(docker images -q) # remove ALL images!!!
+docker rmi -f $(docker images | grep "^<none>" | awk '{print $3}') # remove all <none> images
+docker rmi -f $(docker images | grep 'search_term_here' | awk '{print $1}') # i.e. 2 days ago
+docker rmi -f $(docker images | grep 'search_1\|search_2' | awk '{print $1}')
+
+### DELETE BOTH IMAGES AND CONTAINERS ###
+docker images && docker ps -a
+# stop and remove containers and associated images with common grep search term
+docker ps -a --no-trunc  | grep "search_term_here" | awk "{print $1}" | xargs -r --no-run-if-empty docker stop && \
+docker ps -a --no-trunc  | grep "search_term_here" | awk "{print $1}" | xargs -r --no-run-if-empty docker rm && \
+docker images --no-trunc | grep "search_term_here" | awk "{print $3}" | xargs -r --no-run-if-empty docker rmi
+
+# stops only exited containers and delete only non-tagged images
+docker ps --filter 'status=Exited' -a | xargs docker stop docker images --filter "dangling=true" -q | xargs docker rmi
+
+### DELETE NETWORKS AND VOLUMES ###
+# clean up orphaned volumes
+docker volume rm $(docker volume ls -qf dangling=true)
+
+# clean up orphaned networks
+docker network rm $(docker network ls -q)
+
+### NEW IMAGES/CONTAINERS ###
+# create new docker container, ie. ubuntu
+docker pull ubuntu:latest # 1x pull down image
+docker run -i -t ubuntu /bin/bash # drops you into new container as root
+
+### OTHER ###
+# install docker first using directions for installing latest version
+# https://docs.docker.com/installation/ubuntulinux/#ubuntu-trusty-1404-lts-64-bi
